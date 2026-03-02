@@ -1,5 +1,6 @@
-import { useEffect,useRef,useState } from "react"
-import axios from "axios"
+import { useEffect } from "react"
+
+
 
 export default function ImageModal({
 
@@ -11,33 +12,9 @@ onClose
 }){
 
 
-const modalRef = useRef(null)
-
-const [animate,setAnimate]=useState(false)
-const [fullscreen,setFullscreen]=useState(false)
-
-
 if(!photo) return null
 
 
-
-/*
-ANIMATION START
-*/
-
-useEffect(()=>{
-
-setTimeout(()=>{
-setAnimate(true)
-},10)
-
-},[])
-
-
-
-/*
-INDEX
-*/
 
 const index =
 images.findIndex(i=>i.id===photo.id)
@@ -55,9 +32,10 @@ setSelected(images[index-1])
 }
 
 
+
 const nextImage=()=>{
 
-if(index < images.length-1){
+if(index<images.length-1){
 
 setSelected(images[index+1])
 
@@ -67,22 +45,32 @@ setSelected(images[index+1])
 
 
 
-/*
-KEYBOARD NAVIGATION
-*/
+/* KEYBOARD NAVIGATION */
 
 useEffect(()=>{
 
 const keyHandler=(e)=>{
 
 
-if(e.key==="Escape") onClose()
+if(e.key==="Escape"){
 
-if(e.key==="ArrowLeft") prevImage()
+onClose()
 
-if(e.key==="ArrowRight") nextImage()
+}
 
-if(e.key==="f") setFullscreen(!fullscreen)
+
+if(e.key==="ArrowLeft"){
+
+prevImage()
+
+}
+
+
+if(e.key==="ArrowRight"){
+
+nextImage()
+
+}
 
 }
 
@@ -90,50 +78,27 @@ window.addEventListener("keydown",keyHandler)
 
 return ()=>window.removeEventListener("keydown",keyHandler)
 
-})
+},[photo])
 
 
 
-/*
-CLICK OUTSIDE CLOSE
-*/
+/* PROFESSIONAL DOWNLOAD */
 
-const outsideClick=(e)=>{
+const handleDownload = async () => {
 
-if(
-modalRef.current &&
-!modalRef.current.contains(e.target)
-){
+try {
 
-onClose()
+if(photo.links?.download_location){
 
+await fetch(photo.links.download_location)
 }
 
-}
+/* open full image in new tab */
+window.open(photo.urls.full, "_blank")
 
+} catch (err) {
 
-
-/*
-PROFESSIONAL DOWNLOAD
-*/
-
-const downloadImage=async()=>{
-
-try{
-
-await axios.get(
-photo.links.download_location
-)
-
-window.open(
-photo.urls.full,
-"_blank"
-)
-
-}
-catch(err){
-
-console.log(err)
+console.log("Download error:", err)
 
 }
 
@@ -145,19 +110,9 @@ return(
 
 <div
 
-className={`
+className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-6"
 
-fixed inset-0 z-50 flex items-center justify-center p-6
-
-transition duration-300
-
-${animate
-? "bg-black/90 backdrop-blur-md"
-: "bg-black/0"}
-
-`}
-
-onClick={outsideClick}
+onClick={onClose}
 
 >
 
@@ -165,23 +120,9 @@ onClick={outsideClick}
 
 <div
 
-ref={modalRef}
+className="relative max-w-6xl w-full"
 
-className={`
-
-relative
-
-${fullscreen
-? "w-full h-full"
-: "max-w-6xl w-full"}
-
-transition duration-300
-
-${animate
-? "scale-100 opacity-100"
-: "scale-90 opacity-0"}
-
-`}
+onClick={(e)=>e.stopPropagation()}
 
 >
 
@@ -201,7 +142,7 @@ className="w-10 h-10 rounded-full"
 />
 
 
-<div className="text-white font-medium">
+<div className="text-white">
 
 {photo.user.name}
 
@@ -212,32 +153,13 @@ className="w-10 h-10 rounded-full"
 
 
 
-<div className="flex gap-3">
-
-
-{/* FULLSCREEN */}
+{/* FIXED DOWNLOAD BUTTON */}
 
 <button
 
-onClick={()=>setFullscreen(!fullscreen)}
+onClick={handleDownload}
 
-className="bg-black/50 text-white px-4 py-2 rounded-lg hover:bg-black"
-
->
-
-{fullscreen?"Exit":"Fullscreen"}
-
-</button>
-
-
-
-{/* DOWNLOAD */}
-
-<button
-
-onClick={downloadImage}
-
-className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg shadow-lg"
+className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg"
 
 >
 
@@ -249,17 +171,14 @@ Download
 </div>
 
 
-</div>
 
-
-
-{/* LEFT ARROW */}
+{/* LEFT BUTTON */}
 
 <button
 
 onClick={prevImage}
 
-className="absolute left-[-70px] top-1/2 text-white text-5xl hover:scale-125 transition"
+className="absolute left-[-60px] top-1/2 text-white text-4xl"
 
 >
 
@@ -269,13 +188,13 @@ className="absolute left-[-70px] top-1/2 text-white text-5xl hover:scale-125 tra
 
 
 
-{/* RIGHT ARROW */}
+{/* RIGHT BUTTON */}
 
 <button
 
 onClick={nextImage}
 
-className="absolute right-[-70px] top-1/2 text-white text-5xl hover:scale-125 transition"
+className="absolute right-[-60px] top-1/2 text-white text-4xl"
 
 >
 
@@ -285,25 +204,13 @@ className="absolute right-[-70px] top-1/2 text-white text-5xl hover:scale-125 tr
 
 
 
-{/* IMAGE */}
-
 <img
 
 src={photo.urls.full}
 
-className={`
+className="w-full max-h-[85vh] object-contain rounded-lg"
 
-rounded-lg mx-auto
-
-transition duration-300
-
-${fullscreen
-? "max-h-screen"
-: "max-h-[85vh]"}
-
-object-contain
-
-`}
+alt="preview"
 
 />
 
