@@ -1,15 +1,25 @@
+import { useEffect } from "react"
 import { useState } from "react"
 import { supabase } from "../lib/supabase"
 import { useNavigate, Link } from "react-router-dom"
+import { useAuth } from "../context/AuthContext"
 
 export default function Login() {
 
   const navigate = useNavigate()
+  const { user, loading: authLoading } = useAuth()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
+  // If already logged in, go straight to home
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate("/", { replace: true })
+    }
+  }, [user, authLoading])
 
   const submit = async (e) => {
     e.preventDefault()
@@ -24,156 +34,172 @@ export default function Login() {
       return
     }
 
-    navigate("/")
+    // Auth state change in AuthContext will update `user`,
+    // and the useEffect above will navigate to "/"
+    navigate("/", { replace: true })
   }
+
+  const inputStyle = {
+    width: "100%",
+    padding: "12px 16px",
+    borderRadius: "10px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.10)",
+    color: "#fff",
+    fontSize: "14px",
+    letterSpacing: "-0.1px",
+    outline: "none",
+    transition: "border-color 0.2s, background 0.2s",
+    boxSizing: "border-box",
+    fontFamily: "inherit",
+  }
+
+  // Don't render the form while checking auth state
+  if (authLoading) return null
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4"
       style={{
-        background: "radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a0a 60%)"
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px",
+        background: "radial-gradient(ellipse at 50% 0%, #1a1a2e 0%, #080808 60%)",
       }}
     >
-      {/* Glow backdrop */}
+      {/* Ambient glow */}
       <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full blur-[120px] opacity-20 pointer-events-none"
-        style={{ background: "linear-gradient(135deg, #fff 0%, #888 100%)" }}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "500px",
+          height: "260px",
+          borderRadius: "50%",
+          filter: "blur(100px)",
+          opacity: 0.15,
+          background: "linear-gradient(135deg, #fff 0%, #777 100%)",
+          pointerEvents: "none",
+        }}
       />
 
       <div
-        className="relative w-full max-w-sm"
         style={{
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.10)",
-          borderRadius: "24px",
-          padding: "48px 40px",
-          boxShadow: "0 32px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset",
-          backdropFilter: "blur(40px)"
+          position: "relative",
+          width: "100%",
+          maxWidth: "380px",
+          background: "rgba(255,255,255,0.035)",
+          border: "1px solid rgba(255,255,255,0.09)",
+          borderRadius: "20px",
+          padding: "44px 36px",
+          boxShadow: "0 24px 60px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06)",
+          backdropFilter: "blur(40px)",
         }}
       >
-        {/* Logo mark */}
-        <div className="flex justify-center mb-8">
+        {/* Brand mark */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "28px" }}>
           <div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #fff 0%, #ccc 100%)" }}
+            style={{
+              width: "44px",
+              height: "44px",
+              borderRadius: "14px",
+              background: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <line x1="4" y1="22" x2="4" y2="15" stroke="#000" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </div>
         </div>
 
-        <h1
-          className="text-white text-2xl font-semibold text-center mb-1"
-          style={{ letterSpacing: "-0.5px" }}
-        >
+        <h1 style={{ color: "#fff", fontSize: "22px", fontWeight: "600", textAlign: "center", marginBottom: "6px", letterSpacing: "-0.5px" }}>
           Welcome back
         </h1>
-
-        <p className="text-center text-sm mb-8" style={{ color: "rgba(255,255,255,0.4)" }}>
+        <p style={{ color: "rgba(255,255,255,0.38)", fontSize: "14px", textAlign: "center", marginBottom: "28px", letterSpacing: "-0.1px" }}>
           Sign in to NeverStop
         </p>
 
         {error && (
           <div
-            className="text-sm mb-5 px-4 py-3 rounded-xl text-center"
             style={{
-              background: "rgba(255,80,80,0.1)",
-              border: "1px solid rgba(255,80,80,0.25)",
-              color: "#ff8080"
+              fontSize: "13px",
+              marginBottom: "18px",
+              padding: "11px 14px",
+              borderRadius: "10px",
+              textAlign: "center",
+              background: "rgba(255,70,70,0.08)",
+              border: "1px solid rgba(255,70,70,0.2)",
+              color: "#ff8080",
+              letterSpacing: "-0.1px",
             }}
           >
             {error}
           </div>
         )}
 
-        <form onSubmit={submit} className="space-y-3">
-
-          <div>
-            <input
-              type="email"
-              placeholder="Email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{
-                width: "100%",
-                padding: "13px 16px",
-                borderRadius: "12px",
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.10)",
-                color: "#fff",
-                fontSize: "15px",
-                outline: "none",
-                transition: "border-color 0.2s",
-                boxSizing: "border-box"
-              }}
-              onFocus={e => e.target.style.borderColor = "rgba(255,255,255,0.35)"}
-              onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.10)"}
-            />
-          </div>
-
-          <div>
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{
-                width: "100%",
-                padding: "13px 16px",
-                borderRadius: "12px",
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.10)",
-                color: "#fff",
-                fontSize: "15px",
-                outline: "none",
-                transition: "border-color 0.2s",
-                boxSizing: "border-box"
-              }}
-              onFocus={e => e.target.style.borderColor = "rgba(255,255,255,0.35)"}
-              onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.10)"}
-            />
-          </div>
-
+        <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <input
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={inputStyle}
+            onFocus={e => { e.target.style.borderColor = "rgba(255,255,255,0.28)"; e.target.style.background = "rgba(255,255,255,0.07)" }}
+            onBlur={e => { e.target.style.borderColor = "rgba(255,255,255,0.10)"; e.target.style.background = "rgba(255,255,255,0.05)" }}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={inputStyle}
+            onFocus={e => { e.target.style.borderColor = "rgba(255,255,255,0.28)"; e.target.style.background = "rgba(255,255,255,0.07)" }}
+            onBlur={e => { e.target.style.borderColor = "rgba(255,255,255,0.10)"; e.target.style.background = "rgba(255,255,255,0.05)" }}
+          />
           <button
             type="submit"
             disabled={loading}
             style={{
               width: "100%",
-              padding: "13px",
-              borderRadius: "12px",
-              background: loading ? "rgba(255,255,255,0.5)" : "#fff",
+              padding: "12px",
+              marginTop: "4px",
+              borderRadius: "10px",
+              background: loading ? "rgba(255,255,255,0.45)" : "#fff",
               color: "#000",
               fontWeight: "600",
-              fontSize: "15px",
+              fontSize: "14px",
+              letterSpacing: "-0.2px",
               border: "none",
               cursor: loading ? "not-allowed" : "pointer",
-              marginTop: "8px",
               transition: "transform 0.15s, opacity 0.15s",
-              letterSpacing: "-0.2px"
+              fontFamily: "inherit",
             }}
-            onMouseEnter={e => { if (!loading) e.target.style.transform = "scale(1.01)" }}
-            onMouseLeave={e => { e.target.style.transform = "scale(1)" }}
+            onMouseEnter={e => { if (!loading) e.currentTarget.style.transform = "scale(1.015)" }}
+            onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)" }}
           >
             {loading ? "Signing in…" : "Sign in"}
           </button>
-
         </form>
 
-        <p className="text-center text-sm mt-6" style={{ color: "rgba(255,255,255,0.35)" }}>
+        <p style={{ textAlign: "center", fontSize: "13px", marginTop: "22px", color: "rgba(255,255,255,0.32)", letterSpacing: "-0.1px" }}>
           Don't have an account?{" "}
           <Link
             to="/signup"
-            style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: "500" }}
+            style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none", fontWeight: "500" }}
             onMouseEnter={e => e.target.style.color = "#fff"}
-            onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.8)"}
+            onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.75)"}
           >
             Create one
           </Link>
         </p>
-
       </div>
     </div>
   )

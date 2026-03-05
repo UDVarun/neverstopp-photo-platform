@@ -21,19 +21,19 @@ export default function Categories() {
     <div
       style={{
         borderBottom: "1px solid rgba(255,255,255,0.07)",
-        padding: "0"
+        padding: "0",
+        background: "rgba(8,8,8,0.92)",
       }}
     >
       <div
-        className="max-w-[1600px] mx-auto"
-        style={{ padding: "0 24px", overflowX: "auto" }}
+        style={{ maxWidth: "1600px", margin: "0 auto", padding: "0 28px", overflowX: "auto" }}
       >
         <div
           style={{
             display: "flex",
-            gap: "4px",
+            gap: "2px",
             padding: "10px 0",
-            whiteSpace: "nowrap"
+            whiteSpace: "nowrap",
           }}
         >
           {categories.map(cat => {
@@ -44,27 +44,30 @@ export default function Categories() {
                 key={cat}
                 onClick={() => handleClick(cat)}
                 style={{
-                  padding: "7px 16px",
+                  padding: "6px 16px",
                   borderRadius: "100px",
-                  fontSize: "13px",
+                  fontSize: "13.5px",
                   fontWeight: isActive ? "600" : "400",
-                  border: isActive ? "1px solid rgba(255,255,255,0.9)" : "1px solid transparent",
-                  background: isActive ? "rgba(255,255,255,0.10)" : "transparent",
-                  color: isActive ? "#fff" : "rgba(255,255,255,0.45)",
+                  border: isActive
+                    ? "1.5px solid rgba(255,255,255,0.85)"
+                    : "1.5px solid transparent",
+                  background: isActive ? "rgba(255,255,255,0.09)" : "transparent",
+                  color: isActive ? "#fff" : "rgba(255,255,255,0.42)",
                   cursor: "pointer",
-                  transition: "all 0.18s",
+                  transition: "all 0.16s",
                   whiteSpace: "nowrap",
-                  letterSpacing: isActive ? "-0.1px" : "0"
+                  letterSpacing: "-0.1px",
+                  lineHeight: "1.4",
                 }}
                 onMouseEnter={e => {
                   if (!isActive) {
-                    e.currentTarget.style.color = "rgba(255,255,255,0.85)"
-                    e.currentTarget.style.background = "rgba(255,255,255,0.06)"
+                    e.currentTarget.style.color = "rgba(255,255,255,0.88)"
+                    e.currentTarget.style.background = "rgba(255,255,255,0.05)"
                   }
                 }}
                 onMouseLeave={e => {
                   if (!isActive) {
-                    e.currentTarget.style.color = "rgba(255,255,255,0.45)"
+                    e.currentTarget.style.color = "rgba(255,255,255,0.42)"
                     e.currentTarget.style.background = "transparent"
                   }
                 }}

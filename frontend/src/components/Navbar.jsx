@@ -13,6 +13,7 @@ export default function Navbar() {
   const [shrink, setShrink] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const inputRef = useRef(null)
+  const isTyping = useRef(false)   // true only when the user is TYPING, not URL-sync
 
   const suggestions = [
     "Nature", "Cars", "People", "Travel", "Technology",
@@ -30,21 +31,26 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
-  /* Sync search with URL */
+  /* Sync search with URL — programmatic, never triggers debounced navigation */
   useEffect(() => {
     const params = new URLSearchParams(location.search)
-    setSearch(params.get("q") || "")
+    const urlQuery = params.get("q") || ""
+    isTyping.current = false          // mark as not user-typed
+    setSearch(urlQuery)
+    setShowSuggestions(false)         // always hide suggestions on URL change
   }, [location.search])
 
-  /* Debounced search */
+  /* Debounced search — only fires when the user is actively typing */
   useEffect(() => {
+    if (!isTyping.current) return     // skip URL-synced changes
+
     const delay = setTimeout(() => {
-      if (search) {
-        navigate(`/?q=${search}`)
+      if (search.trim()) {
+        navigate(`/?q=${search.trim()}`)
       } else {
         navigate("/")
       }
-    }, 500)
+    }, 400)
     return () => clearTimeout(delay)
   }, [search])
 
@@ -53,10 +59,17 @@ export default function Navbar() {
     navigate("/")
   }
 
+  const handleInputChange = (e) => {
+    isTyping.current = true
+    setSearch(e.target.value)
+    setShowSuggestions(true)
+  }
+
   const selectSuggestion = (s) => {
+    isTyping.current = false
     setSearch(s)
     setShowSuggestions(false)
-    navigate(`/?q=${s}`)
+    navigate(`/?q=${s.toLowerCase()}`)
   }
 
   return (
@@ -65,26 +78,26 @@ export default function Navbar() {
         position: "sticky",
         top: 0,
         zIndex: 50,
-        background: "rgba(10,10,10,0.85)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
+        background: "rgba(8,8,8,0.92)",
+        backdropFilter: "blur(28px)",
+        WebkitBackdropFilter: "blur(28px)",
         borderBottom: "1px solid rgba(255,255,255,0.07)",
         transition: "padding 0.3s",
-        padding: shrink ? "10px 0" : "16px 0",
+        padding: shrink ? "8px 0" : "14px 0",
       }}
     >
-      <div className="max-w-[1600px] mx-auto px-6 flex items-center justify-between gap-6">
+      <div style={{ maxWidth: "1600px", margin: "0 auto", padding: "0 28px", display: "flex", alignItems: "center", gap: "24px" }}>
 
         {/* LEFT: Brand + Favorites */}
-        <div className="flex items-center gap-6 flex-shrink-0">
+        <div style={{ display: "flex", alignItems: "center", gap: "28px", flexShrink: 0 }}>
           <Link
             to="/"
             style={{
               color: "#fff",
               fontWeight: "700",
-              fontSize: "18px",
-              letterSpacing: "-0.5px",
-              textDecoration: "none"
+              fontSize: "17px",
+              letterSpacing: "-0.6px",
+              textDecoration: "none",
             }}
           >
             NeverStop
@@ -95,10 +108,12 @@ export default function Navbar() {
             style={{
               color: "rgba(255,255,255,0.45)",
               fontSize: "14px",
+              fontWeight: "400",
               textDecoration: "none",
-              transition: "color 0.2s"
+              transition: "color 0.18s",
+              letterSpacing: "-0.1px",
             }}
-            onMouseEnter={e => e.target.style.color = "#fff"}
+            onMouseEnter={e => e.target.style.color = "rgba(255,255,255,0.9)"}
             onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.45)"}
           >
             Favorites
@@ -106,12 +121,12 @@ export default function Navbar() {
         </div>
 
         {/* CENTER: Search */}
-        <div className="relative flex-1 max-w-[520px]" style={{ position: "relative" }}>
+        <div style={{ flex: 1, maxWidth: "540px", position: "relative" }}>
           <div style={{ position: "relative" }}>
             {/* Search icon */}
             <svg
-              style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", opacity: 0.4 }}
-              width="16" height="16" viewBox="0 0 24 24" fill="none"
+              style={{ position: "absolute", left: "15px", top: "50%", transform: "translateY(-50%)", opacity: 0.38, pointerEvents: "none" }}
+              width="15" height="15" viewBox="0 0 24 24" fill="none"
             >
               <circle cx="11" cy="11" r="8" stroke="#fff" strokeWidth="2" />
               <path d="M21 21l-4.35-4.35" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
@@ -120,29 +135,30 @@ export default function Navbar() {
             <input
               ref={inputRef}
               value={search}
-              onChange={e => { setSearch(e.target.value); setShowSuggestions(true) }}
-              onFocus={() => setShowSuggestions(true)}
+              onChange={handleInputChange}
+              onFocus={() => { if (search && filtered.length > 0) setShowSuggestions(true) }}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               placeholder="Search photos…"
               style={{
                 width: "100%",
-                padding: "11px 16px 11px 44px",
+                padding: "10px 16px 10px 40px",
                 borderRadius: "100px",
-                background: "rgba(255,255,255,0.08)",
-                border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(255,255,255,0.07)",
+                border: "1px solid rgba(255,255,255,0.10)",
                 color: "#fff",
                 fontSize: "14px",
+                letterSpacing: "-0.1px",
                 outline: "none",
                 boxSizing: "border-box",
-                transition: "border-color 0.2s, background 0.2s"
+                transition: "border-color 0.2s, background 0.2s",
               }}
               onFocusCapture={e => {
-                e.target.style.background = "rgba(255,255,255,0.11)"
-                e.target.style.borderColor = "rgba(255,255,255,0.25)"
+                e.target.style.background = "rgba(255,255,255,0.10)"
+                e.target.style.borderColor = "rgba(255,255,255,0.22)"
               }}
               onBlurCapture={e => {
-                e.target.style.background = "rgba(255,255,255,0.08)"
-                e.target.style.borderColor = "rgba(255,255,255,0.12)"
+                e.target.style.background = "rgba(255,255,255,0.07)"
+                e.target.style.borderColor = "rgba(255,255,255,0.10)"
               }}
             />
           </div>
@@ -152,15 +168,15 @@ export default function Navbar() {
             <div
               style={{
                 position: "absolute",
-                top: "calc(100% + 8px)",
+                top: "calc(100% + 6px)",
                 left: 0,
                 right: 0,
-                background: "rgba(18,18,18,0.97)",
+                background: "rgba(16,16,16,0.98)",
                 border: "1px solid rgba(255,255,255,0.10)",
-                borderRadius: "16px",
+                borderRadius: "14px",
                 overflow: "hidden",
-                boxShadow: "0 16px 48px rgba(0,0,0,0.7)",
-                backdropFilter: "blur(20px)",
+                boxShadow: "0 20px 50px rgba(0,0,0,0.75)",
+                backdropFilter: "blur(24px)",
                 zIndex: 100
               }}
             >
@@ -169,15 +185,29 @@ export default function Navbar() {
                   key={s}
                   onMouseDown={() => selectSuggestion(s)}
                   style={{
-                    padding: "12px 18px",
-                    color: "rgba(255,255,255,0.75)",
+                    padding: "11px 18px",
+                    color: "rgba(255,255,255,0.7)",
                     fontSize: "14px",
+                    letterSpacing: "-0.1px",
                     cursor: "pointer",
-                    transition: "background 0.15s"
+                    transition: "background 0.12s, color 0.12s",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.07)"}
-                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = "rgba(255,255,255,0.06)"
+                    e.currentTarget.style.color = "#fff"
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = "transparent"
+                    e.currentTarget.style.color = "rgba(255,255,255,0.7)"
+                  }}
                 >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ opacity: 0.4, flexShrink: 0 }}>
+                    <circle cx="11" cy="11" r="8" stroke="#fff" strokeWidth="2" />
+                    <path d="M21 21l-4.35-4.35" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
                   {s}
                 </div>
               ))}
@@ -186,55 +216,49 @@ export default function Navbar() {
         </div>
 
         {/* RIGHT: Auth */}
-        <div className="flex items-center gap-4 flex-shrink-0">
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0, marginLeft: "auto" }}>
 
           {user ? (
             <>
               <div
                 style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, #e0e0e0 0%, #a0a0a0 100%)",
+                  color: "#000",
                   display: "flex",
                   alignItems: "center",
-                  gap: "10px"
+                  justifyContent: "center",
+                  fontWeight: "700",
+                  fontSize: "12px",
+                  flexShrink: 0,
+                  letterSpacing: "0",
                 }}
               >
-                <div
-                  style={{
-                    width: "34px",
-                    height: "34px",
-                    borderRadius: "50%",
-                    background: "linear-gradient(135deg, #fff 0%, #bbb 100%)",
-                    color: "#000",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: "700",
-                    fontSize: "13px",
-                    flexShrink: 0
-                  }}
-                >
-                  {user.email?.charAt(0).toUpperCase()}
-                </div>
+                {user.email?.charAt(0).toUpperCase()}
               </div>
 
               <button
                 onClick={handleLogout}
                 style={{
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.10)",
-                  color: "rgba(255,255,255,0.65)",
-                  padding: "8px 14px",
+                  background: "rgba(255,255,255,0.07)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  color: "rgba(255,255,255,0.6)",
+                  padding: "7px 15px",
                   borderRadius: "100px",
                   fontSize: "13px",
                   cursor: "pointer",
-                  transition: "all 0.2s"
+                  transition: "all 0.18s",
+                  letterSpacing: "-0.1px",
                 }}
                 onMouseEnter={e => {
-                  e.target.style.background = "rgba(255,255,255,0.10)"
-                  e.target.style.color = "#fff"
+                  e.currentTarget.style.background = "rgba(255,255,255,0.12)"
+                  e.currentTarget.style.color = "#fff"
                 }}
                 onMouseLeave={e => {
-                  e.target.style.background = "rgba(255,255,255,0.06)"
-                  e.target.style.color = "rgba(255,255,255,0.65)"
+                  e.currentTarget.style.background = "rgba(255,255,255,0.07)"
+                  e.currentTarget.style.color = "rgba(255,255,255,0.6)"
                 }}
               >
                 Log out
@@ -245,13 +269,16 @@ export default function Navbar() {
               <Link
                 to="/login"
                 style={{
-                  color: "rgba(255,255,255,0.5)",
+                  color: "rgba(255,255,255,0.55)",
                   fontSize: "14px",
+                  fontWeight: "400",
                   textDecoration: "none",
-                  transition: "color 0.2s"
+                  transition: "color 0.18s",
+                  letterSpacing: "-0.1px",
+                  padding: "7px 4px",
                 }}
                 onMouseEnter={e => e.target.style.color = "#fff"}
-                onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.5)"}
+                onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.55)"}
               >
                 Login
               </Link>
@@ -261,17 +288,25 @@ export default function Navbar() {
                 style={{
                   background: "#fff",
                   color: "#000",
-                  padding: "9px 18px",
+                  padding: "8px 18px",
                   borderRadius: "100px",
                   fontSize: "13px",
                   fontWeight: "600",
                   textDecoration: "none",
-                  transition: "opacity 0.2s, transform 0.15s"
+                  transition: "opacity 0.18s, transform 0.15s",
+                  letterSpacing: "-0.2px",
+                  display: "inline-block",
                 }}
-                onMouseEnter={e => { e.target.style.opacity = "0.88"; e.target.style.transform = "scale(1.02)" }}
-                onMouseLeave={e => { e.target.style.opacity = "1"; e.target.style.transform = "scale(1)" }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.opacity = "0.85"
+                  e.currentTarget.style.transform = "scale(1.025)"
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.opacity = "1"
+                  e.currentTarget.style.transform = "scale(1)"
+                }}
               >
-                Sign up
+                Sign Up
               </Link>
             </>
           )}

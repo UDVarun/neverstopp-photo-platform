@@ -1,52 +1,99 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-html, body {
-  background: #0a0a0a;
+html,
+body {
+  background: #080808;
   color: #fff;
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 100px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
 
 /* Placeholder */
-::placeholder { color: rgba(255,255,255,0.3); }
+::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
 
 /* Selection */
-::selection { background: rgba(255,255,255,0.2); }
+::selection {
+  background: rgba(255, 255, 255, 0.18);
+}
 
-/* Image layout */
+/* Remove default input / button chrome */
+input,
+button {
+  font-family: inherit;
+}
+
+/* Image grid */
 .photo-grid {
   columns: 2;
-  gap: 16px;
+  gap: 14px;
 }
 
-@media(min-width: 640px) { .photo-grid { columns: 3; } }
-@media(min-width: 1024px) { .photo-grid { columns: 4; } }
-@media(min-width: 1280px) { .photo-grid { columns: 5; } }
+@media(min-width: 640px) {
+  .photo-grid {
+    columns: 3;
+  }
+}
 
-.photo-grid > * {
+@media(min-width: 1024px) {
+  .photo-grid {
+    columns: 4;
+  }
+}
+
+@media(min-width: 1280px) {
+  .photo-grid {
+    columns: 5;
+  }
+}
+
+.photo-grid>* {
   break-inside: avoid;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
-/* Subtle fade-in animation for images */
+/* Fade-in animation */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .fade-up {
-  animation: fadeUp 0.4s ease both;
+  animation: fadeUp 0.35s ease both;
 }
