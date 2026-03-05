@@ -1,56 +1,52 @@
-import axios from "axios"
-
-const API="http://localhost:5000"
+import { supabase } from "../lib/supabase"
 
 
 
-export const loginUser = async(data)=>{
+export const registerUser = async ({ name, email, password }) => {
 
-const res = await axios.post(
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { name }
+    }
+  })
 
-API+"/auth/login",
+  if (error) throw error
 
-data
+  return data
+}
 
-)
 
-localStorage.setItem(
-"token",
-res.data.token
-)
 
-return res.data
+export const loginUser = async ({ email, password }) => {
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  })
+
+  if (error) throw error
+
+  return data
+}
+
+
+
+export const logoutUser = async () => {
+
+  await supabase.auth.signOut()
 
 }
 
 
 
-export const registerUser = async(data)=>{
+/* ✅ FIXED isLoggedIn FOR SUPABASE */
 
-const res = await axios.post(
+export const isLoggedIn = async () => {
 
-API+"/auth/register",
+  const { data } = await supabase.auth.getSession()
 
-data
-
-)
-
-return res.data
-
-}
-
-
-
-export const logoutUser=()=>{
-
-localStorage.removeItem("token")
-
-}
-
-
-
-export const isLoggedIn=()=>{
-
-return localStorage.getItem("token")
+  return !!data.session
 
 }

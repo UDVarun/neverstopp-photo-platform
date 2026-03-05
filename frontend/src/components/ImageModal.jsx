@@ -17,27 +17,27 @@ if(!photo) return null
 
 
 const index =
-images.findIndex(i=>i.id===photo.id)
+images.findIndex(i => i.id === photo.id)
 
 
 
-const prevImage=()=>{
+const prevImage = () => {
 
-if(index>0){
+if(index > 0){
 
-setSelected(images[index-1])
-
-}
+setSelected(images[index - 1])
 
 }
 
+}
 
 
-const nextImage=()=>{
 
-if(index<images.length-1){
+const nextImage = () => {
 
-setSelected(images[index+1])
+if(index < images.length - 1){
+
+setSelected(images[index + 1])
 
 }
 
@@ -49,24 +49,21 @@ setSelected(images[index+1])
 
 useEffect(()=>{
 
-const keyHandler=(e)=>{
+const keyHandler = (e)=>{
 
-
-if(e.key==="Escape"){
+if(e.key === "Escape"){
 
 onClose()
 
 }
 
-
-if(e.key==="ArrowLeft"){
+if(e.key === "ArrowLeft"){
 
 prevImage()
 
 }
 
-
-if(e.key==="ArrowRight"){
+if(e.key === "ArrowRight"){
 
 nextImage()
 
@@ -74,9 +71,9 @@ nextImage()
 
 }
 
-window.addEventListener("keydown",keyHandler)
+window.addEventListener("keydown", keyHandler)
 
-return ()=>window.removeEventListener("keydown",keyHandler)
+return ()=>window.removeEventListener("keydown", keyHandler)
 
 },[photo])
 
@@ -91,12 +88,30 @@ try {
 if(photo.links?.download_location){
 
 await fetch(photo.links.download_location)
+
 }
 
-/* open full image in new tab */
-window.open(photo.urls.full, "_blank")
+/* Fetch actual image */
+const response = await fetch(photo.urls.full)
 
-} catch (err) {
+const blob = await response.blob()
+
+/* Create temporary download link */
+const url = window.URL.createObjectURL(blob)
+
+const a = document.createElement("a")
+
+a.href = url
+a.download = `${photo.id}.jpg`
+
+document.body.appendChild(a)
+a.click()
+a.remove()
+
+window.URL.revokeObjectURL(url)
+
+}
+catch (err) {
 
 console.log("Download error:", err)
 
@@ -139,6 +154,7 @@ onClick={(e)=>e.stopPropagation()}
 <img
 src={photo.user.profile_image.medium}
 className="w-10 h-10 rounded-full"
+alt="user"
 />
 
 
@@ -152,8 +168,6 @@ className="w-10 h-10 rounded-full"
 </div>
 
 
-
-{/* FIXED DOWNLOAD BUTTON */}
 
 <button
 

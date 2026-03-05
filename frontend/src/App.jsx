@@ -1,42 +1,36 @@
+import { Routes, Route } from "react-router-dom"
+
+import Layout from "./components/Layout"
 import Home from "./pages/Home"
 import Login from "./pages/Login"
 import Signup from "./pages/Signup"
 import Favorites from "./pages/Favorites"
+import ProtectedRoute from "./components/ProtectedRoute"
 
-import {
+export default function App() {
 
-BrowserRouter,
-Routes,
-Route
+  return (
+    <Layout>
 
-} from "react-router-dom"
+      <Routes>
 
+        <Route path="/" element={<Home />} />
 
+        <Route path="/login" element={<Login />} />
 
-export default function App(){
+        <Route path="/signup" element={<Signup />} />
 
-return(
+        <Route
+          path="/favorites"
+          element={
+            <ProtectedRoute>
+              <Favorites />
+            </ProtectedRoute>
+          }
+        />
 
-<BrowserRouter>
+      </Routes>
 
-
-<Routes>
-
-
-<Route path="/" element={<Home/>}/>
-
-<Route path="/login" element={<Login/>}/>
-
-<Route path="/signup" element={<Signup/>}/>
-
-<Route path="/favorites" element={<Favorites/>}/>
-
-
-</Routes>
-
-
-</BrowserRouter>
-
-)
-
+    </Layout>
+  )
 }
