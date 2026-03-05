@@ -13,7 +13,7 @@ router.get("/", async (req, res) => {
         params: {
           query: query,
           page: page,
-          per_page: 20
+          per_page: 12
         },
         headers: {
           Authorization: `Client-ID ${process.env.UNSPLASH_KEY}`

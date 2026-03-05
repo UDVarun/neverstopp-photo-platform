@@ -16,40 +16,48 @@ export default function ImageCard({ photo, onClick }) {
         setLiked(prev => !prev)
     }
 
+    // Aspect ratio from Unsplash metadata — no layout shift
+    const paddingBottom = `${(photo.height / photo.width) * 100}%`
+
     return (
         <div
             className="break-inside-avoid group relative cursor-pointer"
-            style={{ marginBottom: "14px" }}
+            style={{ marginBottom: "12px", borderRadius: "12px", overflow: "hidden" }}
             onClick={() => onClick(photo)}
         >
-            {/* Skeleton placeholder shown until image loads */}
-            {!loaded && (
+            {/* Colored placeholder using Unsplash's dominant color — shows instantly */}
+            <div style={{ position: "relative", width: "100%", paddingBottom }}>
                 <div
                     style={{
-                        width: "100%",
-                        paddingBottom: `${(photo.height / photo.width) * 100}%`,
-                        background: "rgba(255,255,255,0.05)",
+                        position: "absolute",
+                        inset: 0,
+                        background: photo.color || "#1a1a1a",
                         borderRadius: "12px",
+                        transition: "opacity 0.4s ease",
+                        opacity: loaded ? 0 : 1,
                     }}
                 />
-            )}
 
-            <img
-                src={photo.urls.small}
-                alt={photo.alt_description || photo.description || "photo"}
-                loading="lazy"
-                onLoad={() => setLoaded(true)}
-                style={{
-                    width: "100%",
-                    display: loaded ? "block" : "none",
-                    borderRadius: "12px",
-                    transition: "filter 0.25s",
-                }}
-                className="group-hover:brightness-75"
-            />
+                <img
+                    src={photo.urls.small}
+                    alt={photo.alt_description || "photo"}
+                    loading="lazy"
+                    decoding="async"
+                    onLoad={() => setLoaded(true)}
+                    style={{
+                        position: "absolute",
+                        inset: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        borderRadius: "12px",
+                        opacity: loaded ? 1 : 0,
+                        transition: "opacity 0.4s ease, filter 0.25s",
+                    }}
+                    className="group-hover:brightness-75"
+                />
 
-            {/* Hover overlay */}
-            {loaded && (
+                {/* Hover overlay */}
                 <div
                     style={{
                         position: "absolute",
@@ -57,22 +65,22 @@ export default function ImageCard({ photo, onClick }) {
                         borderRadius: "12px",
                         opacity: 0,
                         transition: "opacity 0.2s",
-                        padding: "12px",
+                        padding: "10px",
                         display: "flex",
                         alignItems: "flex-end",
                         justifyContent: "space-between",
                     }}
                     className="group-hover:opacity-100"
                 >
-                    {/* Photographer credit */}
+                    {/* Photographer name */}
                     <span
                         style={{
-                            color: "rgba(255,255,255,0.85)",
+                            color: "rgba(255,255,255,0.9)",
                             fontSize: "11px",
                             fontWeight: "500",
-                            textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+                            textShadow: "0 1px 6px rgba(0,0,0,0.9)",
                             letterSpacing: "-0.1px",
-                            maxWidth: "70%",
+                            maxWidth: "65%",
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                             whiteSpace: "nowrap",
@@ -85,25 +93,22 @@ export default function ImageCard({ photo, onClick }) {
                     <button
                         onClick={likeHandler}
                         style={{
-                            background: liked ? "rgba(255,60,60,0.85)" : "rgba(0,0,0,0.55)",
+                            background: liked ? "rgba(220,50,50,0.88)" : "rgba(0,0,0,0.52)",
                             backdropFilter: "blur(8px)",
                             border: "none",
                             borderRadius: "100px",
-                            padding: "6px 10px",
+                            padding: "5px 10px",
                             cursor: "pointer",
-                            fontSize: "13px",
+                            fontSize: "12px",
                             transition: "transform 0.15s, background 0.2s",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4px",
                         }}
-                        onMouseEnter={e => e.currentTarget.style.transform = "scale(1.1)"}
+                        onMouseEnter={e => e.currentTarget.style.transform = "scale(1.12)"}
                         onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
                     >
                         {liked ? "❤️" : "🤍"}
                     </button>
                 </div>
-            )}
+            </div>
         </div>
     )
 }
