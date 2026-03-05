@@ -16,11 +16,7 @@ export default function Login() {
     setLoading(true)
     setError("")
 
-    const { error } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
       setError(error.message)
@@ -32,65 +28,153 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{
+        background: "radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a0a 60%)"
+      }}
+    >
+      {/* Glow backdrop */}
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full blur-[120px] opacity-20 pointer-events-none"
+        style={{ background: "linear-gradient(135deg, #fff 0%, #888 100%)" }}
+      />
 
-      <div className="w-full max-w-md p-10 rounded-3xl bg-gradient-to-b from-[#1c1c1e] to-[#111] shadow-2xl border border-white/10 backdrop-blur-xl">
+      <div
+        className="relative w-full max-w-sm"
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.10)",
+          borderRadius: "24px",
+          padding: "48px 40px",
+          boxShadow: "0 32px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset",
+          backdropFilter: "blur(40px)"
+        }}
+      >
+        {/* Logo mark */}
+        <div className="flex justify-center mb-8">
+          <div
+            className="w-12 h-12 rounded-2xl flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg, #fff 0%, #ccc 100%)" }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        </div>
 
-        <h1 className="text-white text-3xl font-semibold mb-2 text-center">
-          Welcome Back
+        <h1
+          className="text-white text-2xl font-semibold text-center mb-1"
+          style={{ letterSpacing: "-0.5px" }}
+        >
+          Welcome back
         </h1>
 
-        <p className="text-gray-400 text-center mb-8 text-sm">
-          Sign in to continue exploring.
+        <p className="text-center text-sm mb-8" style={{ color: "rgba(255,255,255,0.4)" }}>
+          Sign in to NeverStop
         </p>
 
         {error && (
-          <div className="text-red-400 text-sm mb-4 text-center">
+          <div
+            className="text-sm mb-5 px-4 py-3 rounded-xl text-center"
+            style={{
+              background: "rgba(255,80,80,0.1)",
+              border: "1px solid rgba(255,80,80,0.25)",
+              color: "#ff8080"
+            }}
+          >
             {error}
           </div>
         )}
 
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submit} className="space-y-3">
 
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full p-3 rounded-xl bg-[#1f1f21] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/30 transition"
-          />
+          <div>
+            <input
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              style={{
+                width: "100%",
+                padding: "13px 16px",
+                borderRadius: "12px",
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.10)",
+                color: "#fff",
+                fontSize: "15px",
+                outline: "none",
+                transition: "border-color 0.2s",
+                boxSizing: "border-box"
+              }}
+              onFocus={e => e.target.style.borderColor = "rgba(255,255,255,0.35)"}
+              onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.10)"}
+            />
+          </div>
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full p-3 rounded-xl bg-[#1f1f21] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/30 transition"
-          />
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              style={{
+                width: "100%",
+                padding: "13px 16px",
+                borderRadius: "12px",
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.10)",
+                color: "#fff",
+                fontSize: "15px",
+                outline: "none",
+                transition: "border-color 0.2s",
+                boxSizing: "border-box"
+              }}
+              onFocus={e => e.target.style.borderColor = "rgba(255,255,255,0.35)"}
+              onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.10)"}
+            />
+          </div>
 
           <button
+            type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-white text-black font-semibold hover:scale-[1.02] active:scale-95 transition duration-200"
+            style={{
+              width: "100%",
+              padding: "13px",
+              borderRadius: "12px",
+              background: loading ? "rgba(255,255,255,0.5)" : "#fff",
+              color: "#000",
+              fontWeight: "600",
+              fontSize: "15px",
+              border: "none",
+              cursor: loading ? "not-allowed" : "pointer",
+              marginTop: "8px",
+              transition: "transform 0.15s, opacity 0.15s",
+              letterSpacing: "-0.2px"
+            }}
+            onMouseEnter={e => { if (!loading) e.target.style.transform = "scale(1.01)" }}
+            onMouseLeave={e => { e.target.style.transform = "scale(1)" }}
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Signing in…" : "Sign in"}
           </button>
 
         </form>
 
-        <div className="text-center text-gray-400 text-sm mt-6">
-          Don’t have an account?
+        <p className="text-center text-sm mt-6" style={{ color: "rgba(255,255,255,0.35)" }}>
+          Don't have an account?{" "}
           <Link
             to="/signup"
-            className="text-white ml-2 hover:underline"
+            style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontWeight: "500" }}
+            onMouseEnter={e => e.target.style.color = "#fff"}
+            onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.8)"}
           >
-            Sign Up
+            Create one
           </Link>
-        </div>
+        </p>
 
       </div>
-
     </div>
   )
 }

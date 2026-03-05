@@ -1,6 +1,52 @@
 @import "tailwindcss";
 
-html{
-background:#111;
-color:white;
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  background: #0a0a0a;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 100px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+/* Placeholder */
+::placeholder { color: rgba(255,255,255,0.3); }
+
+/* Selection */
+::selection { background: rgba(255,255,255,0.2); }
+
+/* Image layout */
+.photo-grid {
+  columns: 2;
+  gap: 16px;
+}
+
+@media(min-width: 640px) { .photo-grid { columns: 3; } }
+@media(min-width: 1024px) { .photo-grid { columns: 4; } }
+@media(min-width: 1280px) { .photo-grid { columns: 5; } }
+
+.photo-grid > * {
+  break-inside: avoid;
+  margin-bottom: 16px;
+}
+
+/* Subtle fade-in animation for images */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up {
+  animation: fadeUp 0.4s ease both;
 }

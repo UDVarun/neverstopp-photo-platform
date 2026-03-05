@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useLocation } from "react-router-dom"
 import api from "../services/api"
 
@@ -13,78 +13,83 @@ export default function Home() {
 
   const location = useLocation()
   const params = new URLSearchParams(location.search)
-  const query = params.get("q") || ""
+  const query = params.get("q") || "nature"
 
   const [images, setImages] = useState([])
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [hasMore, setHasMore] = useState(true)
 
   const observerRef = useRef()
+  const isFetching = useRef(false)
 
-  const loadImages = async () => {
-
-    try {
-
-      const res = await api.get(
-        `/photos?q=${query}&page=${page}`
-      )
-
-      preloadImages(res.data.results)
-
-      setImages(prev => {
-        const ids = new Set(prev.map(i => i.id))
-        const unique = res.data.results.filter(i => !ids.has(i.id))
-        return [...prev, ...unique]
-      })
-
-    } catch (err) {
-      console.log(err)
-    }
-
-    setLoading(false)
-  }
-
-  /* RESET WHEN QUERY CHANGES */
+  // When query changes, reset everything
   useEffect(() => {
     setImages([])
     setPage(1)
     setLoading(true)
+    setHasMore(true)
+    isFetching.current = false
   }, [query])
 
+  // Fetch images when page or query changes
   useEffect(() => {
+    const loadImages = async () => {
+      if (isFetching.current || !hasMore) return
+      isFetching.current = true
+
+      try {
+        const res = await api.get(`/photos?q=${query}&page=${page}`)
+        const results = res.data.results || []
+
+        if (results.length === 0) {
+          setHasMore(false)
+        } else {
+          preloadImages(results)
+          setImages(prev => {
+            const ids = new Set(prev.map(i => i.id))
+            const unique = results.filter(i => !ids.has(i.id))
+            return [...prev, ...unique]
+          })
+        }
+      } catch (err) {
+        console.log(err)
+      }
+
+      setLoading(false)
+      isFetching.current = false
+    }
+
     loadImages()
   }, [page, query])
 
-  /* INFINITE SCROLL */
-  useEffect(() => {
+  // Infinite scroll — only activate after images are loaded
+  const sentinelRef = useCallback(node => {
+    if (!node) return
 
-    const observer =
-      new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting) {
-          setPage(p => p + 1)
-        }
-      })
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !isFetching.current && hasMore) {
+        setPage(p => p + 1)
+      }
+    }, { rootMargin: "400px" })
 
-    if (observerRef.current) {
-      observer.observe(observerRef.current)
-    }
-
+    observer.observe(node)
+    observerRef.current = observer
     return () => observer.disconnect()
-
-  }, [])
+  }, [hasMore])
 
   return (
-    <div className="bg-[#111] min-h-screen">
+    <div className="bg-[#0a0a0a] min-h-screen">
 
-      <Categories setImages={setImages} setPage={setPage} />
+      <Categories />
 
-      <div className="max-w-[1600px] mx-auto px-8 py-10">
+      <div className="max-w-[1600px] mx-auto px-6 py-10">
 
         {loading && images.length === 0 ? (
           <SkeletonGrid />
         ) : (
-          <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-6 space-y-6">
+          <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 space-y-4">
             {images.map(photo => (
               <ImageCard
                 key={photo.id}
@@ -95,7 +100,10 @@ export default function Home() {
           </div>
         )}
 
-        <div ref={observerRef} className="h-20" />
+        {/* Sentinel for infinite scroll */}
+        {!loading && hasMore && (
+          <div ref={sentinelRef} className="h-20 mt-4" />
+        )}
 
       </div>
 
