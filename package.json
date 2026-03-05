@@ -1,4 +1,17 @@
 {
+  "name": "my-photolab",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "vercel-build": "cd frontend && npm install && npm run build"
+  },
   "dependencies": {
     "serverless-http": "^4.0.0"
   }
