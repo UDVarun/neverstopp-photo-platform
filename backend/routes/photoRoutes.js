@@ -1,6 +1,8 @@
+const express = require("express")
+const router = express.Router()
 const axios = require("axios")
 
-exports.getPhotos = async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const query = req.query.q || "nature"
     const page = req.query.page || 1
@@ -28,4 +30,6 @@ exports.getPhotos = async (req, res) => {
       error: "Failed to fetch photos"
     })
   }
-}
+})
+
+module.exports = router
