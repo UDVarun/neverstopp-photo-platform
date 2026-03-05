@@ -1,12 +1,31 @@
-const router =
-require("express").Router()
+const axios = require("axios")
 
-const {
-getPhotos
-} = require("../controllers/photosController")
+exports.getPhotos = async (req, res) => {
+  try {
+    const query = req.query.q || "nature"
+    const page = req.query.page || 1
 
+    const response = await axios.get(
+      "https://api.unsplash.com/search/photos",
+      {
+        params: {
+          query: query,
+          page: page,
+          per_page: 20
+        },
+        headers: {
+          Authorization: `Client-ID ${process.env.UNSPLASH_KEY}`
+        }
+      }
+    )
 
-router.get("/",
-getPhotos)
+    res.json(response.data)
 
-module.exports = router
+  } catch (error) {
+    console.error("Unsplash error:", error.message)
+
+    res.status(500).json({
+      error: "Failed to fetch photos"
+    })
+  }
+}
