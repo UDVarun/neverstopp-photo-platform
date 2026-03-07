@@ -4,10 +4,20 @@ GET FAVORITES
 
 export const getFavorites = ()=>{
 
-return JSON.parse(
-localStorage.getItem("favorites")
-) || []
+try {
+const raw = localStorage.getItem("favorites")
+if (!raw) return []
+const parsed = JSON.parse(raw)
+return Array.isArray(parsed) ? parsed : []
+} catch {
+return []
+}
 
+}
+
+const saveFavorites = (favs) => {
+localStorage.setItem("favorites", JSON.stringify(favs))
+window.dispatchEvent(new Event("favorites-updated"))
 }
 
 
@@ -49,12 +59,24 @@ favs.push(photo)
 
 }
 
+saveFavorites(favs)
+return !exists
 
-localStorage.setItem(
-"favorites",
-JSON.stringify(favs)
-)
+}
 
+export const addFavorite = (photo) => {
+if (isFavorite(photo.id)) return false
+const favs = [...getFavorites(), photo]
+saveFavorites(favs)
+return true
+}
+
+export const removeFavorite = (id) => {
+const favs = getFavorites()
+const nextFavs = favs.filter((f) => f.id !== id)
+if (nextFavs.length === favs.length) return false
+saveFavorites(nextFavs)
+return true
 }
 
 

@@ -10,20 +10,24 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
 
-    /* GET CURRENT SESSION */
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession()
+    const syncSession = async () => {
+      const { data, error } = await supabase.auth.getSession()
+      if (error) {
+        setUser(null)
+        setLoading(false)
+        return
+      }
+
       setUser(data.session?.user ?? null)
       setLoading(false)
     }
 
-    getSession()
+    syncSession()
 
-    /* LISTEN FOR LOGIN / LOGOUT */
-    const { data: listener } =
-      supabase.auth.onAuthStateChange((event, session) => {
-        setUser(session?.user ?? null)
-      })
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
 
     return () => {
       listener.subscription.unsubscribe()
@@ -31,8 +35,15 @@ export const AuthProvider = ({ children }) => {
 
   }, [])
 
+  const refreshUser = async () => {
+    const { data } = await supabase.auth.getUser()
+    if (data?.user) {
+      setUser(data.user)
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

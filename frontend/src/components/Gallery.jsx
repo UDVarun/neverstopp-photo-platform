@@ -21,8 +21,7 @@ images.map(img=>(
 <ImageCard
 
 key={img.id}
-
-img={img}
+photo={img}
 
 />
 

@@ -1,6 +1,21 @@
 import api from "./api"
 import { supabase } from "../lib/supabase"
 
+const loadRazorpayScript = () =>
+new Promise((resolve) => {
+if (window.Razorpay) {
+resolve(true)
+return
+}
+
+const script = document.createElement("script")
+script.src = "https://checkout.razorpay.com/v1/checkout.js"
+script.async = true
+script.onload = () => resolve(true)
+script.onerror = () => resolve(false)
+document.body.appendChild(script)
+})
+
 
 export const payPremium =
 async()=>{
@@ -16,6 +31,11 @@ const razorpayKeyId = import.meta.env.VITE_RAZORPAY_KEY_ID
 
 if (!razorpayKeyId) {
 throw new Error("Payment key is not configured")
+}
+
+const scriptLoaded = await loadRazorpayScript()
+if (!scriptLoaded) {
+throw new Error("Unable to load payment gateway")
 }
 
 const order =
@@ -63,6 +83,11 @@ Authorization: `Bearer ${accessToken}`
 
 alert("Payment Success")
 
+},
+modal: {
+ondismiss: () => {
+console.log("Payment modal closed")
+}
 }
 
 

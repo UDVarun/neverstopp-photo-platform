@@ -84,12 +84,12 @@ export default function Home() {
 
       <Categories />
 
-      <div className="max-w-[1600px] mx-auto px-6 py-10">
+      <div className="max-w-[1600px] mx-auto px-4 py-6 sm:px-5 md:px-7 md:py-8">
 
         {loading && images.length === 0 ? (
           <SkeletonGrid />
         ) : (
-          <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 space-y-4">
+          <div className="columns-2 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-3 md:gap-4 space-y-3 md:space-y-4">
             {images.map(photo => (
               <ImageCard
                 key={photo.id}

@@ -1,4 +1,5 @@
 import Navbar from "./Navbar"
+import SideRail from "./SideRail"
 
 export default function Layout({ children }) {
 
@@ -7,8 +8,9 @@ export default function Layout({ children }) {
 
       {/* NAVBAR ONLY HERE */}
       <Navbar />
+      <SideRail />
 
-      <main className="pt-6">
+      <main className="pt-4 md:pt-6 md:pl-[86px]">
         {children}
       </main>
 

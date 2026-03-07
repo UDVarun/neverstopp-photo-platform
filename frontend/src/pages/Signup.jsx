@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import { supabase } from "../lib/supabase"
-import { useNavigate, Link } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 
 export default function Signup() {
-
   const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
 
@@ -12,282 +11,161 @@ export default function Signup() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const [socialLoading, setSocialLoading] = useState("")
   const [error, setError] = useState("")
-  const [emailSent, setEmailSent] = useState(false)
+  const [info, setInfo] = useState("")
 
-  // If already logged in, go straight to home
   useEffect(() => {
     if (!authLoading && user) {
       navigate("/", { replace: true })
     }
-  }, [user, authLoading])
+  }, [authLoading, user, navigate])
 
   const submit = async (e) => {
     e.preventDefault()
-    setLoading(true)
     setError("")
+    setInfo("")
+    setLoading(true)
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
+    const normalizedEmail = email.trim().toLowerCase()
+
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email: normalizedEmail,
       password,
-      options: { data: { full_name: name } }
+      options: {
+        data: { full_name: name.trim() },
+        emailRedirectTo: `${window.location.origin}/`
+      }
     })
 
-    if (error) {
-      setError(error.message)
+    if (signUpError) {
+      const message = signUpError.message?.toLowerCase() || ""
+      if (message.includes("already") || message.includes("registered")) {
+        setError("This email is already registered. Please sign in instead.")
+      } else {
+        setError(signUpError.message || "Unable to create account")
+      }
       setLoading(false)
       return
     }
 
-    // Session available = auto-confirmed, go straight to home
+    const hasIdentity = Array.isArray(data?.user?.identities) && data.user.identities.length > 0
+    if (!hasIdentity) {
+      setError("This email is already registered. Please sign in instead.")
+      setLoading(false)
+      return
+    }
+
     if (data.session) {
       navigate("/", { replace: true })
       return
     }
 
-    // No session = email confirmation required
-    setEmailSent(true)
+    const { error: autoLoginError } = await supabase.auth.signInWithPassword({
+      email: normalizedEmail,
+      password
+    })
+
+    if (!autoLoginError) {
+      navigate("/", { replace: true })
+      return
+    }
+
+    setInfo("Account created. Please confirm your email, then sign in.")
     setLoading(false)
   }
 
-  const inputStyle = {
-    width: "100%",
-    padding: "12px 16px",
-    borderRadius: "10px",
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.10)",
-    color: "#fff",
-    fontSize: "14px",
-    letterSpacing: "-0.1px",
-    outline: "none",
-    transition: "border-color 0.2s, background 0.2s",
-    boxSizing: "border-box",
-    fontFamily: "inherit",
+  const handleOAuth = async (provider) => {
+    setError("")
+    setInfo("")
+    setSocialLoading(provider)
+
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/`
+      }
+    })
+
+    if (oauthError) {
+      setError(oauthError.message || "Social sign up failed")
+      setSocialLoading("")
+    }
   }
 
-  // Don't render the form while checking auth state
   if (authLoading) return null
 
-  if (emailSent) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "24px",
-          background: "radial-gradient(ellipse at 50% 0%, #1a1a2e 0%, #080808 60%)",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "380px",
-            width: "100%",
-            background: "rgba(255,255,255,0.035)",
-            border: "1px solid rgba(255,255,255,0.09)",
-            borderRadius: "20px",
-            padding: "44px 36px",
-            textAlign: "center",
-            boxShadow: "0 24px 60px rgba(0,0,0,0.65)",
-          }}
-        >
-          <div
-            style={{
-              width: "52px",
-              height: "52px",
-              borderRadius: "50%",
-              background: "rgba(100,200,120,0.12)",
-              border: "1px solid rgba(100,200,120,0.25)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              margin: "0 auto 20px",
-            }}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path d="M20 6L9 17l-5-5" stroke="#6ee7a0" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <h2 style={{ color: "#fff", fontSize: "20px", fontWeight: "600", marginBottom: "10px", letterSpacing: "-0.4px" }}>
-            Check your email
-          </h2>
-          <p style={{ color: "rgba(255,255,255,0.42)", fontSize: "14px", lineHeight: "1.6", marginBottom: "24px", letterSpacing: "-0.1px" }}>
-            We sent a confirmation link to{" "}
-            <strong style={{ color: "rgba(255,255,255,0.7)" }}>{email}</strong>.
-            Click it to activate your account, then come back and sign in.
-          </p>
-          <Link
-            to="/login"
-            style={{
-              display: "inline-block",
-              padding: "10px 24px",
-              borderRadius: "100px",
-              background: "#fff",
-              color: "#000",
-              fontWeight: "600",
-              fontSize: "13px",
-              textDecoration: "none",
-              letterSpacing: "-0.2px",
-            }}
-          >
-            Go to Login
-          </Link>
-        </div>
-      </div>
-    )
+  const fieldStyle = {
+    width: "100%",
+    padding: "12px 14px",
+    borderRadius: "12px",
+    border: "1px solid rgba(255,255,255,0.16)",
+    background: "rgba(255,255,255,0.05)",
+    color: "#fff",
+    fontSize: "14px",
+    outline: "none"
+  }
+
+  const socialBtn = {
+    width: "100%",
+    borderRadius: "12px",
+    border: "1px solid rgba(255,255,255,0.16)",
+    background: "rgba(255,255,255,0.06)",
+    color: "#fff",
+    padding: "11px 12px",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: "600"
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "24px",
-        background: "radial-gradient(ellipse at 50% 0%, #1a1a2e 0%, #080808 60%)",
-      }}
-    >
-      {/* Ambient glow */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "500px",
-          height: "260px",
-          borderRadius: "50%",
-          filter: "blur(100px)",
-          opacity: 0.15,
-          background: "linear-gradient(135deg, #fff 0%, #777 100%)",
-          pointerEvents: "none",
-        }}
-      />
-
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: "380px",
-          background: "rgba(255,255,255,0.035)",
-          border: "1px solid rgba(255,255,255,0.09)",
-          borderRadius: "20px",
-          padding: "44px 36px",
-          boxShadow: "0 24px 60px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06)",
-          backdropFilter: "blur(40px)",
-        }}
-      >
-        {/* Brand mark */}
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: "28px" }}>
-          <div
-            style={{
-              width: "44px",
-              height: "44px",
-              borderRadius: "14px",
-              background: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <line x1="4" y1="22" x2="4" y2="15" stroke="#000" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </div>
+    <div style={{ minHeight: "100vh", background: "radial-gradient(circle at 30% 0%, #153d30 0%, #070707 52%, #070707 100%)", padding: "30px 16px" }}>
+      <div style={{ maxWidth: "430px", margin: "0 auto", background: "linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%)", border: "1px solid rgba(255,255,255,0.13)", borderRadius: "22px", padding: "30px 24px", boxShadow: "0 24px 60px rgba(0,0,0,0.5)" }}>
+        <div style={{ marginBottom: "18px" }}>
+          <div style={{ color: "rgba(255,255,255,0.55)", fontSize: "12px", letterSpacing: "0.3px" }}>NeverStop Photos</div>
+          <h1 style={{ margin: "6px 0 6px", color: "#fff", fontSize: "26px" }}>Create account</h1>
+          <p style={{ margin: 0, color: "rgba(255,255,255,0.65)", fontSize: "13px" }}>One email can register one account.</p>
         </div>
 
-        <h1 style={{ color: "#fff", fontSize: "22px", fontWeight: "600", textAlign: "center", marginBottom: "6px", letterSpacing: "-0.5px" }}>
-          Create account
-        </h1>
-        <p style={{ color: "rgba(255,255,255,0.38)", fontSize: "14px", textAlign: "center", marginBottom: "28px", letterSpacing: "-0.1px" }}>
-          Join NeverStop for free
-        </p>
-
         {error && (
-          <div
-            style={{
-              fontSize: "13px",
-              marginBottom: "18px",
-              padding: "11px 14px",
-              borderRadius: "10px",
-              textAlign: "center",
-              background: "rgba(255,70,70,0.08)",
-              border: "1px solid rgba(255,70,70,0.2)",
-              color: "#ff8080",
-              letterSpacing: "-0.1px",
-            }}
-          >
+          <div style={{ background: "rgba(255,90,90,0.14)", border: "1px solid rgba(255,90,90,0.32)", color: "#ffc6c6", padding: "10px 12px", borderRadius: "10px", fontSize: "13px", marginBottom: "14px" }}>
             {error}
           </div>
         )}
 
-        <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          <input
-            placeholder="Full name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            required
-            style={inputStyle}
-            onFocus={e => { e.target.style.borderColor = "rgba(255,255,255,0.28)"; e.target.style.background = "rgba(255,255,255,0.07)" }}
-            onBlur={e => { e.target.style.borderColor = "rgba(255,255,255,0.10)"; e.target.style.background = "rgba(255,255,255,0.05)" }}
-          />
-          <input
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-            style={inputStyle}
-            onFocus={e => { e.target.style.borderColor = "rgba(255,255,255,0.28)"; e.target.style.background = "rgba(255,255,255,0.07)" }}
-            onBlur={e => { e.target.style.borderColor = "rgba(255,255,255,0.10)"; e.target.style.background = "rgba(255,255,255,0.05)" }}
-          />
-          <input
-            type="password"
-            placeholder="Password (min. 6 characters)"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-            minLength={6}
-            style={inputStyle}
-            onFocus={e => { e.target.style.borderColor = "rgba(255,255,255,0.28)"; e.target.style.background = "rgba(255,255,255,0.07)" }}
-            onBlur={e => { e.target.style.borderColor = "rgba(255,255,255,0.10)"; e.target.style.background = "rgba(255,255,255,0.05)" }}
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: "100%",
-              padding: "12px",
-              marginTop: "4px",
-              borderRadius: "10px",
-              background: loading ? "rgba(255,255,255,0.45)" : "#fff",
-              color: "#000",
-              fontWeight: "600",
-              fontSize: "14px",
-              letterSpacing: "-0.2px",
-              border: "none",
-              cursor: loading ? "not-allowed" : "pointer",
-              transition: "transform 0.15s, opacity 0.15s",
-              fontFamily: "inherit",
-            }}
-            onMouseEnter={e => { if (!loading) e.currentTarget.style.transform = "scale(1.015)" }}
-            onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)" }}
-          >
-            {loading ? "Creating account…" : "Create account"}
+        {info && (
+          <div style={{ background: "rgba(115,255,181,0.12)", border: "1px solid rgba(115,255,181,0.28)", color: "#c9ffe4", padding: "10px 12px", borderRadius: "10px", fontSize: "13px", marginBottom: "14px" }}>
+            {info}
+          </div>
+        )}
+
+        <form onSubmit={submit} style={{ display: "grid", gap: "10px" }}>
+          <input type="text" placeholder="Full name" required value={name} onChange={(e) => setName(e.target.value)} style={fieldStyle} />
+          <input type="email" placeholder="Email" required value={email} onChange={(e) => setEmail(e.target.value)} style={fieldStyle} />
+          <input type="password" placeholder="Password (min 6 chars)" minLength={6} required value={password} onChange={(e) => setPassword(e.target.value)} style={fieldStyle} />
+          <button type="submit" disabled={loading || !!socialLoading} style={{ ...socialBtn, background: "#fff", color: "#080808", marginTop: "2px" }}>
+            {loading ? "Creating account..." : "Create account"}
           </button>
         </form>
 
-        <p style={{ textAlign: "center", fontSize: "13px", marginTop: "22px", color: "rgba(255,255,255,0.32)", letterSpacing: "-0.1px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "16px 0" }}>
+          <div style={{ height: "1px", background: "rgba(255,255,255,0.12)", flex: 1 }} />
+          <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "11px" }}>OR</span>
+          <div style={{ height: "1px", background: "rgba(255,255,255,0.12)", flex: 1 }} />
+        </div>
+
+        <div style={{ display: "grid", gap: "8px" }}>
+          <button onClick={() => handleOAuth("google")} disabled={loading || !!socialLoading} style={socialBtn}>
+            {socialLoading === "google" ? "Connecting Google..." : "Continue with Google"}
+          </button>
+          <button onClick={() => handleOAuth("github")} disabled={loading || !!socialLoading} style={socialBtn}>
+            {socialLoading === "github" ? "Connecting GitHub..." : "Continue with GitHub"}
+          </button>
+        </div>
+
+        <p style={{ margin: "16px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.62)", textAlign: "center" }}>
           Already have an account?{" "}
-          <Link
-            to="/login"
-            style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none", fontWeight: "500" }}
-            onMouseEnter={e => e.target.style.color = "#fff"}
-            onMouseLeave={e => e.target.style.color = "rgba(255,255,255,0.75)"}
-          >
+          <Link to="/login" style={{ color: "#fff", textDecoration: "none", fontWeight: "600" }}>
             Sign in
           </Link>
         </p>
