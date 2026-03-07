@@ -43,7 +43,7 @@ export default function SideRail() {
 
   return (
     <aside className="fixed bottom-4 left-3 z-40 hidden md:block">
-      <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/50 p-2 backdrop-blur-xl">
+      <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/50 p-2.5 backdrop-blur-xl">
         {items.map((item) => {
           const active = location.pathname === item.to
           return (
@@ -66,8 +66,6 @@ export default function SideRail() {
             </div>
           )
         })}
-
-        <div className="my-1 h-px bg-white/10" />
 
         <div className="group relative">
           <Link

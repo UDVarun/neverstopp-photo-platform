@@ -11,6 +11,12 @@ const safeParse = (value, fallback = {}) => {
   }
 }
 
+const isValidAvatarValue = (value) => {
+  if (!value || typeof value !== "string") return false
+  const trimmed = value.trim()
+  return trimmed.startsWith("data:image/") || trimmed.startsWith("http://") || trimmed.startsWith("https://")
+}
+
 export const getLocalProfile = (userId) => {
   if (!userId) return {}
   return safeParse(localStorage.getItem(localKey(userId)))
@@ -19,10 +25,12 @@ export const getLocalProfile = (userId) => {
 export const getProfileFromUser = (user) => {
   if (!user) return { fullName: "", bio: "", avatarUrl: "" }
   const local = getLocalProfile(user.id)
+  const avatarFromLocal = isValidAvatarValue(local.avatarUrl) ? local.avatarUrl : ""
+  const avatarFromMeta = isValidAvatarValue(user.user_metadata?.avatar_url) ? user.user_metadata?.avatar_url : ""
   return {
     fullName: local.fullName || user.user_metadata?.full_name || "",
     bio: local.bio || user.user_metadata?.bio || "",
-    avatarUrl: local.avatarUrl || user.user_metadata?.avatar_url || ""
+    avatarUrl: avatarFromLocal || avatarFromMeta || ""
   }
 }
 

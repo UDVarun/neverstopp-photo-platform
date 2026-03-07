@@ -10,7 +10,7 @@ export default function Layout({ children }) {
       <Navbar />
       <SideRail />
 
-      <main className="pt-4 md:pt-6 md:pl-[86px]">
+      <main className="pt-4 md:pt-6 md:pl-[74px]">
         {children}
       </main>
 

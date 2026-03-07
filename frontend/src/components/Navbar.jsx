@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
-import { supabase } from "../lib/supabase"
 import { useAuth } from "../context/AuthContext"
 import { getProfileFromUser } from "../services/profile"
 import { getDefaultAvatarSvg } from "../utils/defaultAvatar"
@@ -70,11 +69,6 @@ export default function Navbar() {
       window.removeEventListener("storage", syncProfile)
     }
   }, [user])
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    navigate("/")
-  }
 
   const handleInputChange = (e) => {
     isTyping.current = true
@@ -147,7 +141,7 @@ export default function Navbar() {
 
         <div className="ml-auto flex items-center gap-2.5 md:gap-3">
           {user ? (
-            <>
+            <Link to="/settings" aria-label="Open settings">
               <img
                 src={avatarUrl || fallbackAvatar}
                 alt="profile"
@@ -155,15 +149,10 @@ export default function Navbar() {
                 onError={(e) => {
                   e.currentTarget.onerror = null
                   e.currentTarget.src = fallbackAvatar
+                  setAvatarUrl("")
                 }}
               />
-              <button
-                onClick={handleLogout}
-                className="rounded-full border border-white/15 bg-white/8 px-3.5 py-1.5 text-xs text-white/75 transition hover:bg-white/15 hover:text-white md:px-4 md:py-2 md:text-sm"
-              >
-                Log out
-              </button>
-            </>
+            </Link>
           ) : (
             <>
               <Link to="/login" className="px-1 py-1 text-sm text-white/65 transition hover:text-white">

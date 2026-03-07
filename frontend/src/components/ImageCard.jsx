@@ -67,23 +67,27 @@ export default function ImageCard({ photo, onClick = () => {} }) {
           title={liked ? "Unlike" : "Like"}
           style={{
             position: "absolute",
-            top: "10px",
-            right: "10px",
-            width: "34px",
-            height: "34px",
+            top: "12px",
+            right: "12px",
+            width: "36px",
+            height: "36px",
             borderRadius: "999px",
-            border: "none",
-            background: liked ? "#e0315b" : "rgba(0,0,0,0.52)",
+            border: liked ? "1px solid rgba(255,80,120,0.55)" : "1px solid rgba(255,255,255,0.24)",
+            background: liked
+              ? "linear-gradient(135deg, rgba(236,72,124,0.95) 0%, rgba(190,24,93,0.95) 100%)"
+              : "rgba(8,8,8,0.52)",
+            backdropFilter: "blur(10px)",
             color: "#fff",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             cursor: "pointer",
-            boxShadow: "0 6px 20px rgba(0,0,0,0.35)",
-            opacity: liked ? 1 : 0,
-            transition: "opacity 0.2s, transform 0.12s, background 0.2s"
+            boxShadow: liked
+              ? "0 10px 25px rgba(190,24,93,0.35)"
+              : "0 10px 25px rgba(0,0,0,0.35)",
+            transition: "opacity 0.18s, transform 0.12s, background 0.2s, border-color 0.2s"
           }}
-          className="group-hover:opacity-100"
+          className="z-20 opacity-0 group-hover:opacity-100"
           onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.08)" }}
           onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)" }}
         >
