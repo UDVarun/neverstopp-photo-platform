@@ -4,8 +4,10 @@ const axios = require("axios")
 
 router.get("/", async (req, res) => {
   try {
-    const query = req.query.q || "nature"
-    const page = req.query.page || 1
+    const rawQuery = `${req.query.q || "nature"}`
+    const query = rawQuery.replace(/[^\w\s-]/g, "").trim().slice(0, 60) || "nature"
+    const pageNumber = Number.parseInt(req.query.page, 10)
+    const page = Number.isFinite(pageNumber) && pageNumber > 0 ? Math.min(pageNumber, 100) : 1
 
     const response = await axios.get(
       "https://api.unsplash.com/search/photos",

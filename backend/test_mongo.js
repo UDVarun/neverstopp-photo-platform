@@ -1,7 +1,10 @@
 const mongoose = require('mongoose');
-const uri = "mongodb+srv://varunud84_db_user:NNuRQkWoPO3lVylY@cluster0.0s7rcdh.mongodb.net/photolab?retryWrites=true&w=majority&appName=Cluster0";
+const uri = process.env.MONGODB_URI;
 
-console.log("Testing URI:", uri);
+if (!uri) {
+    console.error("MONGODB_URI is required");
+    process.exit(1);
+}
 
 mongoose.connect(uri)
     .then(() => {

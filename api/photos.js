@@ -2,8 +2,10 @@ const axios = require("axios");
 
 module.exports = async (req, res) => {
     try {
-        const query = req.query.q || "nature";
-        const page = req.query.page || 1;
+        const rawQuery = `${req.query.q || "nature"}`;
+        const query = rawQuery.replace(/[^\w\s-]/g, "").trim().slice(0, 60) || "nature";
+        const pageNumber = Number.parseInt(req.query.page, 10);
+        const page = Number.isFinite(pageNumber) && pageNumber > 0 ? Math.min(pageNumber, 100) : 1;
 
         console.log(`Fetching photos for query: ${query}, page: ${page}`);
 

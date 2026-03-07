@@ -19,10 +19,13 @@ error:"No Token"
 
 try{
 
+const [scheme, rawToken] = token.split(" ")
+const jwtToken = scheme === "Bearer" ? rawToken : token
+
 const decoded=
 jwt.verify(
 
-token,
+jwtToken,
 
 process.env.JWT_SECRET
 
